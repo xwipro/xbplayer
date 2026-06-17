@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+*::-webkit-scrollbar {display: none;}
+html, body, #root {
+    width: 100%;
+    height: 100%;
+}
+
+:root {
+    --color-white: #fff;
+    --color-red: #ff0000;
+    --color-primary: #a300ef;
+}
+
+.xb-icon {
+    display: inline-flex;
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+}
+
+.xbplayer-wrap {
+    width: 100%;
+}

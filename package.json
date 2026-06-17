@@ -1,0 +1,56 @@
+{
+  "name": "xbplayer",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/xbplayer.umd.js",
+  "module": "./dist/xbplayer.es.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/xbplayer.es.js",
+      "require": "./dist/xbplayer.umd.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./style": "./dist/xbplayer.css"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "hls.js": "^1.6.16"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.12.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "autoprefixer": "^10.5.0",
+    "eslint": "^10.3.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.6.0",
+    "postcss": "^8.5.15",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "sass": "^1.101.0",
+    "sass-loader": "^17.0.0",
+    "tailwindcss": "^3.4.19",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.59.2",
+    "vite": "^8.0.12"
+  },
+  "allowScripts": {
+    "@parcel/watcher@2.5.6": true
+  }
+}
