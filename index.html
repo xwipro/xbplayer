@@ -32,7 +32,7 @@
         const isLive = urlParams.get("lv") === "cv";
         const player = new XbPlayer({
             container: ".__xbplayer",
-            src: videoUrl || "",
+            src: encodeURIComponent(videoUrl) || "",
             isLive: isLive
         })
     </script>
