@@ -6,7 +6,6 @@ import XbIcon from "./xbicon";
  * @returns void
  */
 const setFullScreen = () => {
-    const xbvidEle = document.querySelector("#root") as HTMLElement;
     const fullscreenEl = document.fullscreenElement ||
         (document as any).mozFullScreenElement ||
         (document as any).webkitFullscreenElement ||
@@ -14,26 +13,40 @@ const setFullScreen = () => {
 
     if (fullscreenEl) {
         if (document.exitFullscreen) {
-        document.exitFullscreen();
+            document.exitFullscreen();
         } else if ((document as any).mozCancelFullScreen) {
-        (document as any).mozCancelFullScreen();
+            (document as any).mozCancelFullScreen();
         } else if ((document as any).webkitExitFullscreen) {
-        (document as any).webkitExitFullscreen();
+            (document as any).webkitExitFullscreen();
         } else if ((document as any).msExitFullscreen) {
-        (document as any).msExitFullscreen();
+            (document as any).msExitFullscreen();
         }
     } else {
-        if (!xbvidEle) return;
-        if (xbvidEle.requestFullscreen) {
-        xbvidEle.requestFullscreen();
-        } else if ((xbvidEle as any).mozRequestFullScreen) {
-        (xbvidEle as any).mozRequestFullScreen();
-        } else if ((xbvidEle as any).webkitRequestFullScreen) {
-        (xbvidEle as any).webkitRequestFullScreen();
-        } else if ((xbvidEle as any).msRequestFullscreen) {
-        (xbvidEle as any).msRequestFullscreen();
+        const playerRoot = document.querySelector(".xbplayer-root") as HTMLElement;
+        const target = playerRoot || document.documentElement;
+        
+        if (target.requestFullscreen) {
+            target.requestFullscreen();
+        } else if ((target as any).mozRequestFullScreen) {
+            (target as any).mozRequestFullScreen();
+        } else if ((target as any).webkitRequestFullScreen) {
+            (target as any).webkitRequestFullScreen();
+        } else if ((target as any).msRequestFullscreen) {
+            (target as any).msRequestFullscreen();
         }
     }
+}
+
+/**
+ * 包装 onClick 处理器，阻止事件冒泡
+ * @param handler 原始处理器
+ * @returns 包装后的处理器
+ */
+const stopPropagation = (handler: () => void) => {
+    return (e: React.MouseEvent) => {
+        e.stopPropagation();
+        handler();
+    };
 }
 
 type vidInfo = {
@@ -53,6 +66,7 @@ interface videoControlProps {
     onVolumeChange?: (volume: number) => void
     onMutedChange?: (muted: boolean) => void
     visible?: boolean
+    isLive?: boolean
 }
 
 
@@ -77,8 +91,7 @@ function writeVolumeToStorage(v: number) {
     } catch { /* ignore */ }
 }
 
-export default function XbControl({vidInfo, togglePlay, onSeek, onSeekStart, onSeekEnd, onVolumeChange, onMutedChange, visible = true}: videoControlProps) {
-    const [showLive] = useState(false);
+export default function XbControl({vidInfo, togglePlay, onSeek, onSeekStart, onSeekEnd, onVolumeChange, onMutedChange, visible = true, isLive = false}: videoControlProps) {
     const [volume, setVolume] = useState(readVolumeFromStorage());
     const [lastVolume, setLastVolume] = useState(readVolumeFromStorage());
     const [isMuted, setIsMuted] = useState(false);
@@ -229,38 +242,37 @@ export default function XbControl({vidInfo, togglePlay, onSeek, onSeekStart, onS
             onMouseLeave={handleMouseLeave}
             onClick={togglePlay}
         >
-            {/* 控制板块 - 进度条+按钮栏整体，一起上下移动 */}
+            {isLive && (
+                <div className="absolute top-5 left-5 z-20 flex items-center gap-[.3rem] text-[.7rem] text-[var(--color-white)] whitespace-nowrap select-none tracking-widest">
+                    <i className="block w-[.5rem] h-[.5rem] rounded-full bg-[var(--color-red)] animate-pulse"></i>
+                    直播
+                </div>
+            )}
             <div
                 className={`absolute bottom-0 left-0 w-full transition-transform duration-300 ease-in-out ${isVisible ? "translate-y-0" : "translate-y-full pointer-events-none"}`}
                 onClick={(e) => e.stopPropagation()}
                 onMouseEnter={handleControlMouseEnter}
                 onMouseLeave={handleControlMouseLeave}
             >
-                {/* 进度条 - 在上方 */}
-                <div
-                    className="xbplayer-wrap flex items-center h-[1rem] w-full group"
-                    onPointerDown={handlePointerDown}
-                    onPointerMove={handlePointerMove}
-                    onPointerUp={handlePointerUp}
-                    onPointerCancel={handlePointerUp}
-                >
-                    <div ref={progressRef} className="w-full relative h-[.18rem] bg-[#ffffff33] mx-5">
-                        <div className="absolute left-0 top-0 bottom-0 h-full bg-[#ffffff66] transition-all duration-500 ease" style={{width: bufferedPercent}}></div>
-                        <div className="absolute left-0 top-0 bottom-0 h-full bg-[var(--color-primary)]" style={{ width: progressPercent }}>
-                            <span className="block w-[.68rem] h-[.68rem] rounded-full absolute top-0 right-[.31rem] mt-[-.25rem] mr-[-.63rem] scale-0 transition-all duration-300 ease-in-out bg-[var(--color-primary)] group-hover:scale-100"></span>
+                {!isLive && (
+                    <div
+                        className="xbplayer-wrap flex items-center h-[1rem] w-full group"
+                        onPointerDown={handlePointerDown}
+                        onPointerMove={handlePointerMove}
+                        onPointerUp={handlePointerUp}
+                        onPointerCancel={handlePointerUp}
+                    >
+                        <div ref={progressRef} className="w-full relative h-[.18rem] bg-[#ffffff33] mx-5">
+                            <div className="absolute left-0 top-0 bottom-0 h-full bg-[#ffffff66] transition-all duration-500 ease" style={{width: bufferedPercent}}></div>
+                            <div className="absolute left-0 top-0 bottom-0 h-full bg-[var(--color-primary)]" style={{ width: progressPercent }}>
+                                <span className="block w-[.68rem] h-[.68rem] rounded-full absolute top-0 right-[.31rem] mt-[-.25rem] mr-[-.63rem] scale-0 transition-all duration-300 ease-in-out bg-[var(--color-primary)] group-hover:scale-100"></span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                {/* 按钮栏 - 在下方 */}
+                )}
                 <div className="flex items-center w-full h-[3rem] px-5">
                     <div className="flex gap-4 items-center">
                         <XbIcon className="opacity-80 hover:opacity-100 transition-all duration-200 " size="1rem" color="var(--color-white)" name={vidInfo.isPlaying ? "pause" : "play"} onClick={togglePlay} />
-                        {showLive && (
-                            <span className="flex items-center gap-[.3rem] text-[.7rem] text-[var(--color-white)] whitespace-nowrap select-none tracking-widest">
-                                <i className="block w-[.5rem] h-[.5rem] rounded-full bg-[var(--color-red)]"></i>
-                                直播
-                            </span>
-                        )}
                         <div className="flex items-center gap-3 group">
                             <XbIcon className="opacity-80 hover:opacity-100 transition-all duration-200 " size="1rem" color="var(--color-white)" name={(isMuted || volume === 0) ? "mute" : "volumn"} onClick={toggleMute} />
                             <div
@@ -276,15 +288,17 @@ export default function XbControl({vidInfo, togglePlay, onSeek, onSeekStart, onS
                                 </div>
                             </div>
                         </div>
-                        <span className="xbplayer-time opacity-90 flex gap-2 whitespace-nowrap select-none text-sm text-[var(--color-white)] tracking-wider">
-                            <span>{vidInfo.currentTime}</span>/
-                            <span>{vidInfo.duration}</span>
-                        </span>
+                        {!isLive && (
+                            <span className="xbplayer-time opacity-90 flex gap-2 whitespace-nowrap select-none text-sm text-[var(--color-white)] tracking-wider">
+                                <span>{vidInfo.currentTime}</span>/
+                                <span>{vidInfo.duration}</span>
+                            </span>
+                        )}
                     </div>
                     <span className="flex flex-1"></span>
                     <div className="flex items-center gap-5">
                         <XbIcon className="opacity-80 hover:opacity-100 transition-all duration-200 " size="1rem" color="var(--color-white)" name="setting" />
-                        <XbIcon className="opacity-80 hover:opacity-100 transition-all duration-200 " size="1rem" color="var(--color-white)" name="fullscreen" onClick={() => setFullScreen()} />
+                        <XbIcon className="opacity-80 hover:opacity-100 transition-all duration-200 " size="1rem" color="var(--color-white)" name="fullscreen" onClick={stopPropagation(setFullScreen)} />
                     </div>
                 </div>
             </div>

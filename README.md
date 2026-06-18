@@ -42,9 +42,13 @@ npm install
     <script src="xbplayer.js"></script>
 </head>
 <body>
+    <div class="player"></div>
     <script>
-        const xbplayer = new XbPlayer();
-        xbplayer.src = "视频地址";
+        const xbplayer = new XbPlayer({
+            container: ".player",               // 视频挂载区域 
+            src: "视频地址",                    // 视频地址 m3u8,mp4
+            isLive: true,                      // 是否是直播流
+        });
     </script>
 </body>
 </html>

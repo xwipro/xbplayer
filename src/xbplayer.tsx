@@ -5,16 +5,18 @@ import "./index.css"
 export interface XbPlayerOptions {
   container?: string | HTMLElement
   src?: string
+  isLive?: boolean
 }
 
 export class XbPlayer {
   private _root: Root | null = null
   private _container: HTMLElement | null = null
   private _src: string = ""
+  private _isLive: boolean = false
   private _destroyed = false
 
   constructor(options?: XbPlayerOptions) {
-    const { container, src } = options || {}
+    const { container, src, isLive } = options || {}
 
     if (typeof container === "string") {
       this._container = document.querySelector<HTMLElement>(container) || null
@@ -38,12 +40,16 @@ export class XbPlayer {
       this._src = src
     }
 
+    if (isLive) {
+      this._isLive = isLive
+    }
+
     this._render()
   }
 
   private _render() {
     if (!this._root || this._destroyed) return
-    this._root.render(<App v_url={this._src} />)
+    this._root.render(<App v_url={this._src} isLive={this._isLive} />)
   }
 
   get src(): string {
@@ -52,6 +58,15 @@ export class XbPlayer {
 
   set src(url: string) {
     this._src = url || ""
+    this._render()
+  }
+
+  get isLive(): boolean {
+    return this._isLive
+  }
+
+  set isLive(value: boolean) {
+    this._isLive = value
     this._render()
   }
 

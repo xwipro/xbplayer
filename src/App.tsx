@@ -4,6 +4,7 @@ import Hls from "hls.js"
 
 interface AppProps {
   v_url?: string
+  isLive?: boolean
 }
 
 const DEFAULT_SRC = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
@@ -35,7 +36,7 @@ function readInitialVolume(): number {
   }
 }
 
-export default function App({ v_url }: AppProps) {
+export default function App({ v_url, isLive = false }: AppProps) {
   const src = v_url && v_url.trim() !== "" ? v_url : DEFAULT_SRC
 
   const vidRef = useRef<HTMLVideoElement | null>(null)
@@ -189,6 +190,7 @@ export default function App({ v_url }: AppProps) {
             onSeekEnd={onSeekEnd}
             onVolumeChange={onVolumeChange}
             onMutedChange={onMutedChange}
+            isLive={isLive}
           />
         </div>
       </div>
