@@ -7,7 +7,7 @@ interface AppProps {
   isLive?: boolean
 }
 
-const DEFAULT_SRC = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+const DEFAULT_SRC = ""
 
 function isM3u8(url: string): boolean {
   return /\.m3u8(\?|$)/i.test(url)
