@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xbplayer</title>
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/xbplayer.css">
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        .__xbplayer {
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+    </style>
+    <script src="/xbplayer.js"></script>
+</head>
+<body>
+    <div class="__xbplayer"></div>
+    <script>
+        // 获取地址栏参数
+        const urlParams = new URLSearchParams(window.location.search);
+        // 获取视频地址
+        const videoUrl = urlParams.get("xpurl");
+        // 是否为直播
+        const isLive = urlParams.get("lv") === "cv";
+        const player = new XbPlayer({
+            container: ".__xbplayer",
+            src: videoUrl || "",
+            isLive: isLive
+        })
+    </script>
+</body>
+</html>
