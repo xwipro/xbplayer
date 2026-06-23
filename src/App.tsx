@@ -1,6 +1,8 @@
 import XbControl from "./components/xbcontrol"
+import { showMessage } from "./components/message"
 import { useEffect, useMemo, useRef, useState } from "react"
 import Hls from "hls.js"
+import FlvJs from "flv.js"
 
 interface AppProps {
   v_url?: string
@@ -11,6 +13,10 @@ const DEFAULT_SRC = ""
 
 function isM3u8(url: string): boolean {
   return /\.m3u8(\?|$)/i.test(url)
+}
+
+function isFlv(url: string): boolean {
+  return /\.flv(\?|$)/i.test(url)
 }
 
 function formatVideoTime(seconds: number): string {
@@ -41,11 +47,13 @@ export default function App({ v_url, isLive = false }: AppProps) {
 
   const vidRef = useRef<HTMLVideoElement | null>(null)
   const hlsRef = useRef<Hls | null>(null)
+  const flvRef = useRef<FlvJs.Player | null>(null)
   const isSeekingRef = useRef(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [bufferedEnd, setBufferedEnd] = useState(0)
+  const [isLoaded, setIsLoaded] = useState(false)
 
   const VidInfo = useMemo(() => ({
     currentTime: formatVideoTime(currentTime),
@@ -88,6 +96,23 @@ export default function App({ v_url, isLive = false }: AppProps) {
     else video.pause()
   }
 
+  const togglePictureInPicture = async () => {
+    const video = vidRef.current
+    if (!video) return
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture()
+      } else if (document.pictureInPictureEnabled) {
+        if (video.readyState < 2) {
+          video.load()
+        }
+        await video.requestPictureInPicture()
+      }
+    } catch (error) {
+      // ignore
+    }
+  }
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code !== "Space") return
@@ -113,9 +138,25 @@ export default function App({ v_url, isLive = false }: AppProps) {
 
     let destroySource: (() => void) | null = null
     const isM3u8Source = isM3u8(src)
+    const isFlvSource = isFlv(src)
     const canNativePlay = video.canPlayType("application/vnd.apple.mpegurl") !== ""
 
-    if (isM3u8Source && Hls.isSupported()) {
+    if (isFlvSource && FlvJs.isSupported()) {
+      const flvPlayer = FlvJs.createPlayer({
+        type: "flv",
+        url: src,
+      })
+      flvRef.current = flvPlayer
+      flvPlayer.attachMediaElement(video)
+      flvPlayer.load()
+
+      destroySource = () => {
+        flvPlayer.pause()
+        flvPlayer.unload()
+        flvPlayer.detachMediaElement()
+        flvPlayer.destroy()
+      }
+    } else if (isM3u8Source && Hls.isSupported()) {
       const hls = new Hls({ enableWorker: true })
       hlsRef.current = hls
       hls.loadSource(src)
@@ -157,12 +198,22 @@ export default function App({ v_url, isLive = false }: AppProps) {
 
     const handlePlay = () => setIsPlaying(true)
     const handlePause = () => setIsPlaying(false)
+    const handleError = () => {
+      setIsLoaded(false)
+      showMessage({ text: "加载失败", type: "error", duration: 3000 })
+    }
+    const handleLoadedData = () => {
+      setIsLoaded(true)
+      showMessage({ text: "加载成功", type: "success", duration: 2000 })
+    }
 
     video.addEventListener("loadedmetadata", handleLoadedMetadata)
     video.addEventListener("timeupdate", handleTimeUpdate)
     video.addEventListener("progress", handleProgress)
     video.addEventListener("play", handlePlay)
     video.addEventListener("pause", handlePause)
+    video.addEventListener("error", handleError)
+    video.addEventListener("loadeddata", handleLoadedData)
 
     return () => {
       video.removeEventListener("loadedmetadata", handleLoadedMetadata)
@@ -170,15 +221,20 @@ export default function App({ v_url, isLive = false }: AppProps) {
       video.removeEventListener("progress", handleProgress)
       video.removeEventListener("play", handlePlay)
       video.removeEventListener("pause", handlePause)
+      video.removeEventListener("error", handleError)
+      video.removeEventListener("loadeddata", handleLoadedData)
       if (destroySource) destroySource()
       if (hlsRef.current) {
         hlsRef.current = null
+      }
+      if (flvRef.current) {
+        flvRef.current = null
       }
     }
   }, [src])
 
   return (
-    <div className="w-full h-full relative xbplayer-root">
+    <div className="w-full h-full relative xbplayer-root bg-black">
       <video ref={vidRef} className="w-full h-full object-cover"></video>
       <div className="absolute z-10 w-full h-full top-0 left-0" onClick={togglePlay}>
         <div onClick={(e) => e.stopPropagation()}>
@@ -190,7 +246,9 @@ export default function App({ v_url, isLive = false }: AppProps) {
             onSeekEnd={onSeekEnd}
             onVolumeChange={onVolumeChange}
             onMutedChange={onMutedChange}
+            onTogglePictureInPicture={togglePictureInPicture}
             isLive={isLive}
+            visible={isLoaded}
           />
         </div>
       </div>

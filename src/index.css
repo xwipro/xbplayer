@@ -13,6 +13,14 @@ html, body, #root {
     --color-white: #fff;
     --color-red: #ff0000;
     --color-primary: #a300ef;
+    --el-color-success: #67c23a;
+    --el-color-success-light-6: #b3d99a;
+    --el-color-success-light-8: #f0f9eb;
+    --el-color-success-light-9: #fafbf7;
+    --el-color-danger: #f56c6c;
+    --el-color-danger-light-6: #f9c5c5;
+    --el-color-danger-light-8: #fef0f0;
+    --el-color-danger-light-9: #fef7f7;
 }
 
 .xb-icon {

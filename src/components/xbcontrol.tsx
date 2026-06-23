@@ -65,6 +65,7 @@ interface videoControlProps {
     onSeekEnd?: () => void
     onVolumeChange?: (volume: number) => void
     onMutedChange?: (muted: boolean) => void
+    onTogglePictureInPicture?: () => void
     visible?: boolean
     isLive?: boolean
 }
@@ -91,7 +92,7 @@ function writeVolumeToStorage(v: number) {
     } catch { /* ignore */ }
 }
 
-export default function XbControl({vidInfo, togglePlay, onSeek, onSeekStart, onSeekEnd, onVolumeChange, onMutedChange, visible = true, isLive = false}: videoControlProps) {
+export default function XbControl({vidInfo, togglePlay, onSeek, onSeekStart, onSeekEnd, onVolumeChange, onMutedChange, onTogglePictureInPicture, visible = true, isLive = false}: videoControlProps) {
     const [volume, setVolume] = useState(readVolumeFromStorage());
     const [lastVolume, setLastVolume] = useState(readVolumeFromStorage());
     const [isMuted, setIsMuted] = useState(false);
@@ -298,6 +299,7 @@ export default function XbControl({vidInfo, togglePlay, onSeek, onSeekStart, onS
                     <span className="flex flex-1"></span>
                     <div className="flex items-center gap-5">
                         <XbIcon className="opacity-80 hover:opacity-100 transition-all duration-200 " size="1rem" color="var(--color-white)" name="setting" />
+                        <XbIcon className="opacity-80 hover:opacity-100 transition-all duration-200 " size="1.3rem" color="var(--color-white)" name="picinpic" onClick={stopPropagation(() => onTogglePictureInPicture?.())} />
                         <XbIcon className="opacity-80 hover:opacity-100 transition-all duration-200 " size="1rem" color="var(--color-white)" name="fullscreen" onClick={stopPropagation(setFullScreen)} />
                     </div>
                 </div>
