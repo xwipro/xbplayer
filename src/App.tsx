@@ -92,8 +92,17 @@ export default function App({ v_url, isLive = false }: AppProps) {
   const togglePlay = () => {
     const video = vidRef.current
     if (!video) return
-    if (video.paused) video.play()
-    else video.pause()
+    try {
+      if (video.paused) {
+        video.play().catch(() => {
+          showMessage({ text: "播放失败", type: "error", duration: 3000 })
+        })
+      } else {
+        video.pause()
+      }
+    } catch {
+      showMessage({ text: "播放失败", type: "error", duration: 3000 })
+    }
   }
 
   const togglePictureInPicture = async () => {
@@ -107,9 +116,11 @@ export default function App({ v_url, isLive = false }: AppProps) {
           video.load()
         }
         await video.requestPictureInPicture()
+      } else {
+        showMessage({ text: "画中画不支持", type: "error", duration: 3000 })
       }
-    } catch (error) {
-      // ignore
+    } catch {
+      showMessage({ text: "画中画失败", type: "error", duration: 3000 })
     }
   }
 
